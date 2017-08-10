@@ -38,7 +38,7 @@ def createDataset():
     #Save transformed dataset
     df.to_csv('TransformedData.csv')
     #Trades off storage space vs load speed
-    joblib.dump(df, 'TransformedData.pkl')
+    joblib.dump(df, 'J:/Source/Exercises/Exercise2/TransformedData.pkl')
 
 if __name__ == '__main__':
     createDataset()

@@ -43,7 +43,7 @@ def plotLengthPopularity(origDf, groupName, lengthName, ax):
 def createStory():
 
     # Read transformed dataframe
-    df = joblib.load('TransformedData.pkl')
+    df = joblib.load('J:/Source/Exercises/Exercise2/TransformedData.pkl')
 
     # Check for missing data
     #msno.matrix(df)
