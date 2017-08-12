@@ -59,6 +59,7 @@ def createModelingDataset():
 
 def main():
 
+
     # Read transformed dataframe
     df = joblib.load('J:/Source/Exercises/Exercise2/ModelingData.pkl')
 
@@ -200,9 +201,9 @@ def main():
 
     def testClassifier(clf):
         param_grid = [{'n_estimators': range(50, 100, 10),
-                       'min_samples_split': range(10, 16, 1),
-                       'min_samples_leaf': range(5, 30, 5),
-                       'max_leaf_nodes': (5, 30, 5)
+                       'min_samples_split': range(10, 15, 1),
+                       'min_samples_leaf': range(15, 30, 5),
+                       'max_leaf_nodes': (40, 80, 5)
                        }]
 
         grid = GridSearchCV(clf, param_grid, cv=3, verbose=1, n_jobs=-1)
@@ -234,7 +235,7 @@ def main():
     lr = LogisticRegression(C = 0.005)
     sgd = SGDClassifier()
     dt = DecisionTreeClassifier()
-    rf = RandomForestClassifier(max_features='sqrt', max_depth=2)
+    rf = RandomForestClassifier(max_features='sqrt', max_depth=4)
     et = ExtraTreesClassifier(max_leaf_nodes= 5, min_samples_leaf=5, min_samples_split=15, n_estimators=80,
                               max_depth=2, max_features='sqrt')
 

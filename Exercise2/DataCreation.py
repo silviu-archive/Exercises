@@ -21,7 +21,7 @@ def createDataset():
     df['dob'] = pd.to_datetime(df['dob']).dt.date
     df['age'] = (df['session_start'].dt.date - df['dob']).astype('<m8[Y]')
     # Bin ages
-    bins = [25, 35, 45, 55, 65, 115]
+    bins = [0, 25, 35, 45, 55, 65, 115]
     df['age_bins'] = pd.cut(df['age'], bins=bins, include_lowest=False)
     # Transform length from timedelta to floats
     df['sessionLengthSeconds'] = df['session_length'].dt.seconds

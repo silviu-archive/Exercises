@@ -169,12 +169,6 @@ def createStory():
 
 
 
-    #How do people view shows in comparison to their original broadcast date (boxplot)
-    plt.figure()
-    df['filledAgeBin'] = df['age_bins'].cat.add_categories(['Other']).fillna('Other')
-    df['startDifferenceHours'] = df['startDifference'] / (60*60)
-    sns.boxplot(x='filledAgeBin', y='startDifferenceHours', data=df, showfliers=False)
-    plt.title('Delay in viewership by age group')
 
 
 
@@ -254,6 +248,36 @@ def createStory():
     plt.figure()
     sns.violinplot(x='genre', y='playback_speed', data=playbackDf)
     plt.title('Playback speed distribution per genre')
+
+
+    #How do people view shows in comparison to their original broadcast date (boxplot)
+    plt.figure()
+    df['filledAgeBin'] = df['age_bins'].cat.add_categories(['Other']).fillna('Other')
+    df['startDifferenceHours'] = df['startDifference'] / (60*60)
+    sns.boxplot(x='filledAgeBin', y='startDifferenceHours', data=df, showfliers=False)
+    plt.title('Delay in viewership by age group')
+
+
+    #More comparisons between ages
+    df['filledAgeBin'] = df['age_bins'].cat.add_categories(['Other']).fillna('Other')
+    grouped = df.groupby('filledAgeBin')
+
+    plt.figure()
+    sns.boxplot(x='filledAgeBin', y='sessionLengthSeconds', data=df, showfliers=False)
+    plt.title('Session length by age group')
+
+    plt.figure()
+    sns.boxplot(x='filledAgeBin', y='broadcastLengthSeconds', data=df, showfliers=False)
+    plt.title('Broadcast length by age group')
+
+    plt.figure()
+    sns.violinplot(x='filledAgeBin', y='sessionStartDay', data=df, showfliers=False)
+    plt.title('Session start by age group')
+
+    plt.figure()
+    sns.violinplot(x='filledAgeBin', y='broadcastStartDay', data=df, showfliers=False)
+    plt.title('Delay in viewership by age group')
+
 
 
 
