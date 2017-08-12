@@ -168,7 +168,7 @@ def main():
 
     # Remove features with less than 5% variance
     colNames = X.columns
-    sel = VarianceThreshold(threshold=0.0475)
+    sel = VarianceThreshold(threshold=0.16)
     X = sel.fit_transform(X)
     # Get column names back
     newCols = []
@@ -202,9 +202,28 @@ def main():
             newCols.append(col)
     X = pd.DataFrame(X, columns=newCols)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=1234)
 
     def testClassifier(clf):
+
+        param_grid = [{'n_estimators': range(200, 500, 100),
+                       #'max_depth': range(2, 8, 2),
+                       'min_samples_split': range(2, 50, 15),
+                       'min_samples_leaf': range(50, 400, 50),
+                       'max_leaf_nodes': (20, 100, 20)
+                       }]
+
+        grid = GridSearchCV(clf, param_grid, cv=3, verbose=1, n_jobs=-1)
+        fitted_classifier = grid.fit(X_train, y_train)
+        print(grid.best_score_, grid.best_params_)
+        predictions = fitted_classifier.predict(X_train)
+
+
+
+
+
+
+
         fitted = clf.fit(X_train, y_train)
         scoresCV = cross_val_score(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
         trainPredictionsCV = cross_val_predict(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
@@ -229,13 +248,13 @@ def main():
     lr = LogisticRegression()
     sgd = SGDClassifier()
     dt = DecisionTreeClassifier()
-    rf = RandomForestClassifier()
+    rf = RandomForestClassifier(max_features='sqrt', max_depth=6)
     nb = GaussianNB()
 
-    print('LR')
-    testClassifier(lr)
-    print('DT')
-    testClassifier(dt)
+    #print('LR')
+    #testClassifier(lr)
+    #print('DT')
+    #testClassifier(dt)
     print('RF')
     testClassifier(rf)
 
