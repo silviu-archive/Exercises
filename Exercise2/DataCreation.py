@@ -36,7 +36,7 @@ def createDataset():
     df['broadcastStartDay'] = df['original_broadcast_start'].dt.dayofweek
 
     #Save transformed dataset
-    df.to_csv('TransformedData.csv')
+    #df.to_csv('TransformedData.csv')
     #Trades off storage space vs load speed
     joblib.dump(df, 'J:/Source/Exercises/Exercise2/TransformedData.pkl')
 
