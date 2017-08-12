@@ -206,17 +206,17 @@ def main():
 
     def testClassifier(clf):
 
-        param_grid = [{'n_estimators': range(200, 500, 100),
-                       #'max_depth': range(2, 8, 2),
-                       'min_samples_split': range(2, 50, 15),
-                       'min_samples_leaf': range(50, 400, 50),
-                       'max_leaf_nodes': (20, 100, 20)
+        '''param_grid = [{'n_estimators': range(50, 100, 10),
+                       'max_depth': range(2, 4, 1),
+                       'min_samples_split': range(4, 20, 2),
+                       'min_samples_leaf': range(20, 60, 10),
+                       'max_leaf_nodes': (20, 100, 10)
                        }]
 
         grid = GridSearchCV(clf, param_grid, cv=3, verbose=1, n_jobs=-1)
         fitted_classifier = grid.fit(X_train, y_train)
         print(grid.best_score_, grid.best_params_)
-        predictions = fitted_classifier.predict(X_train)
+        predictions = fitted_classifier.predict(X_train)'''
 
 
 
@@ -245,18 +245,18 @@ def main():
         print('Classification Report')
         print(score5)
 
-    lr = LogisticRegression()
+    lr = LogisticRegression(C = 0.01)
     sgd = SGDClassifier()
     dt = DecisionTreeClassifier()
     rf = RandomForestClassifier(max_features='sqrt', max_depth=6)
     nb = GaussianNB()
 
-    #print('LR')
-    #testClassifier(lr)
+    print('LR')
+    testClassifier(lr)
     #print('DT')
     #testClassifier(dt)
-    print('RF')
-    testClassifier(rf)
+    #print('RF')
+    #testClassifier(rf)
 
 
 
