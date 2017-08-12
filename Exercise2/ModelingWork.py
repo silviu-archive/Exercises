@@ -71,7 +71,6 @@ def main():
     # Unfortunately, even while using sparse matrices, the memory requirements exceed my current machine's capabilities
 
 
-
     #Due to hardware limitations, we need to come up with alternative solutions
     #We still need to aggregate categorical labels per household, but first let's reduce the dataset
 
@@ -101,7 +100,6 @@ def main():
     counts = dfTrain['ID'].value_counts()
     dfTrain = dfTrain[df['ID'].isin(counts[counts >= 10].index)]
 
-
     #Retrieve top 10 shows for each household
     store = pd.DataFrame()
     grouped = dfTrain.groupby('ID')
@@ -112,9 +110,6 @@ def main():
         combined = topTitlesCount.append(topTitles).reset_index(drop=True)
         combined.rename(name, inplace=True)
         store = store.append(combined)
-
-
-
 
     #Testing encoding on a 15% sample at this point still does not manage to provide results due to spec limits
     #Delete some more columns:
@@ -149,7 +144,6 @@ def main():
     df = df.merge(store, left_on='ID', right_index=True)
     df = pd.get_dummies(df, prefix=[5, 6, 7, 8, 9], columns=[5, 6, 7, 8, 9])
 
-
     # Split dataframe into features and target
     y = df.iloc[:, 1]  # .as_matrix()
     X = df.iloc[:, 2:]  # .as_matrix()
@@ -158,7 +152,6 @@ def main():
     sc = StandardScaler()
     ma = MaxAbsScaler()
     mm = MinMaxScaler()
-
 
     # Apply scaler
     colNames = X.columns
@@ -202,27 +195,20 @@ def main():
             newCols.append(col)
     X = pd.DataFrame(X, columns=newCols)
 
+    #Split train/test
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=1234)
 
     def testClassifier(clf):
-
-        '''param_grid = [{'n_estimators': range(50, 100, 10),
-                       'max_depth': range(2, 4, 1),
-                       'min_samples_split': range(4, 20, 2),
-                       'min_samples_leaf': range(20, 60, 10),
-                       'max_leaf_nodes': (20, 100, 10)
+        param_grid = [{'n_estimators': range(50, 100, 10),
+                       'min_samples_split': range(10, 16, 1),
+                       'min_samples_leaf': range(5, 30, 5),
+                       'max_leaf_nodes': (5, 30, 5)
                        }]
 
         grid = GridSearchCV(clf, param_grid, cv=3, verbose=1, n_jobs=-1)
         fitted_classifier = grid.fit(X_train, y_train)
         print(grid.best_score_, grid.best_params_)
-        predictions = fitted_classifier.predict(X_train)'''
-
-
-
-
-
-
+        predictions = fitted_classifier.predict(X_train)
 
         fitted = clf.fit(X_train, y_train)
         scoresCV = cross_val_score(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
@@ -245,78 +231,23 @@ def main():
         print('Classification Report')
         print(score5)
 
-    lr = LogisticRegression(C = 0.01)
+    lr = LogisticRegression(C = 0.005)
     sgd = SGDClassifier()
     dt = DecisionTreeClassifier()
-    rf = RandomForestClassifier(max_features='sqrt', max_depth=6)
-    nb = GaussianNB()
+    rf = RandomForestClassifier(max_features='sqrt', max_depth=2)
+    et = ExtraTreesClassifier(max_leaf_nodes= 5, min_samples_leaf=5, min_samples_split=15, n_estimators=80,
+                              max_depth=2, max_features='sqrt')
 
-    print('LR')
-    testClassifier(lr)
+    #print('LR')
+    #testClassifier(lr)
     #print('DT')
     #testClassifier(dt)
-    #print('RF')
-    #testClassifier(rf)
-
-
-
-
+    print('RF')
+    testClassifier(rf)
+    #print('et')
+    #testClassifier(et)
 
     print('x')
-
-
-
-
-# Split dataframe into features and target
-    '''y = dfEncoded.iloc[:, 1]  # .as_matrix()
-    X = dfEncoded.iloc[:, 2:]  # .as_matrix()
-
-    # Scalings
-    sc = StandardScaler()
-    ma = MaxAbsScaler()
-    mm = MinMaxScaler()
-
-    # Apply scaler
-    colNames = X.columns
-    X = sc.fit_transform(X)
-    X = pd.DataFrame(X, columns=colNames)
-
-    # Remove features with less than 5% variance
-    colNames = X.columns
-    sel = VarianceThreshold(threshold=0.0475)
-    X = sel.fit_transform(X)
-
-    newCols = []
-    for remain, col in zip(sel.get_support(), colNames):
-        if remain == True:
-            newCols.append(col)
-    X = pd.DataFrame(X, columns=newCols)
-
-    # Perform univariate feature selection (ANOVA F-values)
-    colNames = X.columns
-    selection_Percent = SelectPercentile(percentile=5)
-    X = selection_Percent.fit_transform(X, y)
-    newCols = []
-    for remain, col in zip(selection_Percent.get_support(), colNames):
-        if remain == True:
-            newCols.append(col)
-    X = pd.DataFrame(X, columns=newCols)
-
-    # Perform tree-based feature selection
-    clf = ExtraTreesClassifier()
-    clf = clf.fit(X, y)
-    colNames = X.columns
-    sel = SelectFromModel(clf, prefit=True)
-    X = sel.transform(X)
-    newCols = []
-    for remain, col in zip(sel.get_support(), colNames):
-        if remain == True:
-            newCols.append(col)
-    X = pd.DataFrame(X, columns=newCols)'''
-
-
-    print('x')
-
 
 
 
