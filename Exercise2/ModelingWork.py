@@ -137,7 +137,7 @@ def main():
                                                  'broadcastEndHour', 'broadcastEndDay', 'channelName',
                                                  'sessionType', 'genre', 'gender'], sparse=True)
     #Groupby household and sum or average columns
-    df = dummySample.groupby('ID').sum()
+    df = dummySample.groupby(['ID', 'ageBinTarget']).sum()
     temp = dummySample[['ID', 'sessionLength', 'viewingDifference']].groupby('ID').mean()
     del df['sessionLength']
     del df['viewingDifference']
@@ -145,13 +145,13 @@ def main():
     df['viewingDifference'] = temp['viewingDifference']
     df = df.reset_index()
 
-    #Add top 5 titles
+    #Add top 5 titles and encode
     df = df.merge(store, left_on='ID', right_index=True)
-    pd.get_dummies(df, prefix=[5, 6, 7, 8, 9], columns=[5, 6, 7, 8, 9])
+    df = pd.get_dummies(df, prefix=[5, 6, 7, 8, 9], columns=[5, 6, 7, 8, 9])
 
 
     # Split dataframe into features and target
-    y = df.iloc[:, 0]  # .as_matrix()
+    y = df.iloc[:, 1]  # .as_matrix()
     X = df.iloc[:, 2:]  # .as_matrix()
 
     # Scalings
@@ -159,37 +159,39 @@ def main():
     ma = MaxAbsScaler()
     mm = MinMaxScaler()
 
+
     # Apply scaler
     colNames = X.columns
-    X[X.columns[:-5]] = sc.fit_transform(X[X.columns[:-5]])
+    X.fillna(0, inplace=True)
+    X = sc.fit_transform(X)
     X = pd.DataFrame(X, columns=colNames)
 
     # Remove features with less than 5% variance
-    colNames = X.columns[:-5]
+    colNames = X.columns
     sel = VarianceThreshold(threshold=0.0475)
-    transformed = sel.fit_transform(X[X.columns[:-5]])
+    X = sel.fit_transform(X)
     # Get column names back
     newCols = []
     for remain, col in zip(sel.get_support(), colNames):
         if remain == True:
             newCols.append(col)
-    transformed = pd.DataFrame(transformed, columns=newCols)
-    X = transformed.merge(X.iloc[:, -5:], left_index=True, right_index=True)
+    X = pd.DataFrame(X, columns=newCols)
+    #X = transformed.merge(X.iloc[:, -5:], left_index=True, right_index=True)
 
     # Perform univariate feature selection (ANOVA F-values)
     colNames = X.columns
-    selection_Percent = SelectPercentile(percentile=30)
-    transformed = selection_Percent.fit_transform(X[X.columns[:-5]], y)
+    selection_Percent = SelectPercentile(percentile=5)
+    X = selection_Percent.fit_transform(X, y)
     # Get column names back
     newCols = []
     for remain, col in zip(selection_Percent.get_support(), colNames):
         if remain == True:
             newCols.append(col)
-    transformed = pd.DataFrame(transformed, columns=newCols)
-    X = transformed.merge(X.iloc[:, -5:], left_index=True, right_index=True)
+    X = pd.DataFrame(X, columns=newCols)
+    #X = transformed.merge(X.iloc[:, -5:], left_index=True, right_index=True)
 
     # Perform tree-based feature selection
-    '''clf = ExtraTreesClassifier()
+    clf = ExtraTreesClassifier()
     clf = clf.fit(X, y)
     colNames = X.columns
     sel = SelectFromModel(clf, prefit=True)
@@ -198,7 +200,7 @@ def main():
     for remain, col in zip(sel.get_support(), colNames):
         if remain == True:
             newCols.append(col)
-    X = pd.DataFrame(X, columns=newCols)'''
+    X = pd.DataFrame(X, columns=newCols)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
 
@@ -207,6 +209,7 @@ def main():
         scoresCV = cross_val_score(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
         trainPredictionsCV = cross_val_predict(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
 
+        trainPredictions = clf.predict(X_train)
         testPredictions = clf.predict(X_test)
 
         score1 = metrics.accuracy_score(y_test, testPredictions)
@@ -214,7 +217,8 @@ def main():
         #score3 = metrics.roc_auc_score(y_test, testPredictions)
         score4 = metrics.confusion_matrix(y_test, testPredictions)
         score5 = metrics.classification_report(y_test, testPredictions)
-        print(scoresCV)
+        print('Train score: ', metrics.accuracy_score(y_train, trainPredictions))
+        print('CV score: ', scoresCV)
         print('Accuracy, Cohen Kappa')#, ROC AUC Score')
         print(score1, score2)#, score3)
         print('Confusion Matrix')
@@ -228,10 +232,10 @@ def main():
     rf = RandomForestClassifier()
     nb = GaussianNB()
 
-    #print('LR')
-    #testClassifier(lr)
-    #print('DT')
-    #testClassifier(dt)
+    print('LR')
+    testClassifier(lr)
+    print('DT')
+    testClassifier(dt)
     print('RF')
     testClassifier(rf)
 
