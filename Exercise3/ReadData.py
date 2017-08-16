@@ -39,9 +39,6 @@ def main():
     #User Description - ???
     #UserLink, UserExpandedLink - Transform into boolean?
 
-
-
-
     #Create modeling dataframe
     dfModel = pd.DataFrame()
     dfModel['TweetID'] = df['TweetID']
@@ -57,7 +54,6 @@ def main():
         if x is np.nan:
             return 0
         return 1
-
     #Transform user inputs (location, description, link) into exists (1) / not exists (0)
     dfModel['UserLocation'] = df['UserLocation'].apply(lambda x: isCellNull(x))
     dfModel['UserDescription'] = df['UserDescription'].apply(lambda x: isCellNull(x))
@@ -65,7 +61,6 @@ def main():
 
     #Create flag for whether tweet is a reply or not
     dfModel['TweetIsAReply'] = df['TweetInReplyToStatusID'].apply(lambda x: isCellNull(x))
-
 
     #Process user signup dates
     #Define function to convert UTC into datetime
@@ -91,8 +86,8 @@ def main():
     #Count number of favorites on a tweet - scaled to time interval since tweet
     dfModel['FavoritesScaledSinceTweet'] = df['TweetFavoritesCount'] / dfModel['SecondsSinceTweet']
 
-    #Count number of user tweets - scaled to time interval since user signed up
-    dfModel['UserTweetCountScaledSinceCreation'] = df['UserTweetCount'] / dfModel['DaysSinceSignup']
+    #Count number of user tweets - scaled to time interval since user signed up (+1 to avoid inf errors)
+    dfModel['UserTweetCountScaledSinceCreation'] = df['UserTweetCount'] / (dfModel['DaysSinceSignup'] + 1)
 
     #Separate individual tweet sources by labels (TO BE ENCODED)
     def retrieveSource(x):
@@ -106,11 +101,9 @@ def main():
     #Fill tweet place ID nulls with 'unknown' label (TO BE ENCODED)
     dfModel['TweetPlaceID'] = df['TweetPlaceID'].fillna('Unknown')
 
-
-
-
-
-    print('x')
+    #Encode categorical labels
+    dfModel = pd.get_dummies(dfModel, prefix=['TweetSource', 'TweetPlaceID'],
+                               columns=['TweetSource', 'TweetPlaceID'])
 
     #Process Hashtags
     #Fill empty hashtags with label
@@ -128,12 +121,11 @@ def main():
     del description
     del latestTweetTime
     del hashtagMatrix
+
+    '''
+    #Process tweet text - procedure only illustrated for concept
     tweetBody = df['TweetBody']
     del df
-
-    print('x')
-
-    #Process tweet text - procedure only illustrated for concept
     #Procedure not used due to memory errors on current environment
     #Define tokenizer function -- not used in this case as not words are in english (corpora not available on machine)
     def tokenizer_porter(text):
@@ -148,65 +140,17 @@ def main():
     tweetMatrix = tweetMatrix.add_prefix('body')
     dfModel = pd.merge(dfModel, tweetMatrix, left_index=True, right_index=True)
     del tweetMatrix
+    joblib.dump(dfModel, 'modelData.pkl')
+    '''
 
-    joblib.dump('modelData.pkl')
+    #Cleanup model dataframe
+    del dfModel['UserSignupDate']
+    del dfModel['TweetPostedTime']
+    dfModel.fillna(0, inplace=True)
 
-
-
-
-    print('x')
-
-
-
-
-
+    #Dump pickle file with modeling-ready dataset
+    joblib.dump(dfModel, 'modelDataset.pkl')
 
 
-
-
-
-
-
-    #Tweet body - TDIDF matrix
-
-
-
-
-
-
-
-
-    #Tweet reply to user ID - transform into label that somehow counts top users it replies to?
-
-
-
-
-
-
-    #Tweet hashtag - separate hashtags, one hot encode
-
-    #loop over tweets
-    #split by ,
-    #add hashtag to list of overall hashtags
-    #count unique
-    #iterate over matrix and split again, while adding counts to the new columns
-
-
-
-
-
-
-    #User ID - too many to encode, potentially not do anything with them?
-
-    #Research macroiterationnnumber
-
-
-
-
-    print('x')
-
-
-
-
-
-main()
+if __name__ == '__main__':
+    main()
