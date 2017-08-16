@@ -3,6 +3,11 @@ import missingno as msno
 import numpy as np
 import dateutil
 import datetime
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+from nltk.stem.porter import PorterStemmer
+from nltk.corpus import stopwords
+from sklearn.externals import joblib
+
 
 def main():
 
@@ -33,9 +38,6 @@ def main():
     #User Location - fill NaN with 'None', then encode
     #User Description - ???
     #UserLink, UserExpandedLink - Transform into boolean?
-
-
-
 
 
 
@@ -92,6 +94,73 @@ def main():
     #Count number of user tweets - scaled to time interval since user signed up
     dfModel['UserTweetCountScaledSinceCreation'] = df['UserTweetCount'] / dfModel['DaysSinceSignup']
 
+    #Separate individual tweet sources by labels (TO BE ENCODED)
+    def retrieveSource(x):
+        indexStart = x.find('>')
+        indexEnd = x[indexStart:].find('<')+indexStart
+        return x[indexStart+1:indexEnd]
+    dfModel['TweetSource'] = df['TweetSource'].apply(lambda x: retrieveSource(x))
+
+    #Create flag to state whether or not a place is assigned to a tweet
+    dfModel['TweetPlaceFlag'] = df['TweetPlaceID'].apply(lambda x: isCellNull(x))
+    #Fill tweet place ID nulls with 'unknown' label (TO BE ENCODED)
+    dfModel['TweetPlaceID'] = df['TweetPlaceID'].fillna('Unknown')
+
+
+
+
+
+    print('x')
+
+    #Process Hashtags
+    #Fill empty hashtags with label
+    df['TweetHashtags'].fillna('NoHashtag', inplace=True)
+    #Define count vectorizer for hashtag counts
+    cntv = CountVectorizer(lowercase=True, analyzer='word', ngram_range=(1,1), binary=True)
+    hashtagMatrix = cntv.fit_transform(df['TweetHashtags'])
+    hashtagMatrix = pd.DataFrame(hashtagMatrix.toarray())
+    hashtagMatrix = hashtagMatrix.add_prefix('hashtag')
+    dfModel = pd.merge(dfModel, hashtagMatrix, left_index=True, right_index=True)
+
+    #Release memory
+    del cntv
+    del columns
+    del description
+    del latestTweetTime
+    del hashtagMatrix
+    tweetBody = df['TweetBody']
+    del df
+
+    print('x')
+
+    #Process tweet text - procedure only illustrated for concept
+    #Procedure not used due to memory errors on current environment
+    #Define tokenizer function -- not used in this case as not words are in english (corpora not available on machine)
+    def tokenizer_porter(text):
+        porter = PorterStemmer()
+        return [porter.stem(word) for word in text.split()]
+    #Define stop words -- not used in this case as not all tweets are in english
+    stop = stopwords.words('english')
+    #Define term frequency inverse document frequency
+    tfidf = TfidfVectorizer(strip_accents=None, ngram_range=(1,1), stop_words=None, tokenizer=None)
+    tweetMatrix = tfidf.fit_transform(tweetBody)
+    tweetMatrix = pd.DataFrame(tweetMatrix.toarray())
+    tweetMatrix = tweetMatrix.add_prefix('body')
+    dfModel = pd.merge(dfModel, tweetMatrix, left_index=True, right_index=True)
+    del tweetMatrix
+
+    joblib.dump('modelData.pkl')
+
+
+
+
+    print('x')
+
+
+
+
+
+
 
 
 
@@ -103,7 +172,9 @@ def main():
 
 
 
-    #Tweet source - remove HTML, create labels, one hot encode
+
+
+
 
     #Tweet reply to user ID - transform into label that somehow counts top users it replies to?
 
@@ -112,18 +183,20 @@ def main():
 
 
 
-
     #Tweet hashtag - separate hashtags, one hot encode
 
+    #loop over tweets
+    #split by ,
+    #add hashtag to list of overall hashtags
+    #count unique
+    #iterate over matrix and split again, while adding counts to the new columns
 
-    #Tweet place id - transform NAN into unknown, one hot encode
+
+
+
 
 
     #User ID - too many to encode, potentially not do anything with them?
-
-
-
-
 
     #Research macroiterationnnumber
 
