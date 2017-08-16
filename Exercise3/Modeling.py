@@ -3,25 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_context('talk')
-import datetime
-from calendar import isleap
-import missingno as msno
 from sklearn.externals import joblib
-from sklearn.ensemble import RandomForestClassifier
-from matplotlib.ticker import FormatStrFormatter
-import random
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_predict, cross_val_score, GridSearchCV
 from sklearn import metrics
-from sklearn import svm
-from sklearn.linear_model import LogisticRegression, SGDClassifier, LinearRegression
-from sklearn.naive_bayes import GaussianNB
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
-from sklearn.preprocessing import StandardScaler, PolynomialFeatures, MaxAbsScaler, MinMaxScaler
-from sklearn.decomposition import PCA, IncrementalPCA, KernelPCA, FactorAnalysis, TruncatedSVD, NMF, FastICA
-from sklearn.feature_selection import SelectKBest, SelectPercentile, SelectFromModel, VarianceThreshold
-from sklearn.pipeline import FeatureUnion
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SelectPercentile, SelectFromModel, VarianceThreshold
 
 
 def main():

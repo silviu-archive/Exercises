@@ -151,6 +151,5 @@ def main():
     #Dump pickle file with modeling-ready dataset
     joblib.dump(dfModel, 'modelDataset.pkl')
 
-
 if __name__ == '__main__':
     main()
