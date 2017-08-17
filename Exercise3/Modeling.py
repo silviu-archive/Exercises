@@ -131,7 +131,10 @@ def main():
         #Data appears to have high bias in terms of selection, as if tweets were selected from specific pools
             #based on retweet value
         #While the random forest deals well with those particular types of tweets, more analysis is needed
-
+        # Further steps would start by understanding the sampling procedure that produced these tweets
+            # From there, features need to be relooked at, dimensionality reduction (such as PCA) might be needed
+            # Simpler / more powerful models to then be appropriately applied
+        #The target retweets actually seem to be created from a Decision Tree Model
         print('x')
 
     lr = LinearRegression()
@@ -142,8 +145,10 @@ def main():
 
     #print('LR')
     #testRegressor(lr)
+    #print('DT')
+    #testRegressor(dt)
     print('RF')
-    testRegressor(dt)
+    testRegressor(rf)
     #print('XGB')
     #testRegressor(gb)
 
