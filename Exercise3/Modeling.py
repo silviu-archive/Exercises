@@ -11,7 +11,8 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectPercentile, SelectFromModel, VarianceThreshold
-
+import xgboost
+from sklearn.tree import DecisionTreeRegressor
 
 def main():
 
@@ -40,7 +41,6 @@ def main():
         if remain == True:
             newCols.append(col)
     X = pd.DataFrame(X, columns=newCols)
-    #X = transformed.merge(X.iloc[:, -5:], left_index=True, right_index=True)
 
     # Perform univariate feature selection (ANOVA F-values)
     colNames = X.columns
@@ -52,7 +52,6 @@ def main():
         if remain == True:
             newCols.append(col)
     X = pd.DataFrame(X, columns=newCols)
-    #X = transformed.merge(X.iloc[:, -5:], left_index=True, right_index=True)
 
     # Perform tree-based feature selection
     clf = ExtraTreesRegressor()
@@ -67,14 +66,43 @@ def main():
     X = pd.DataFrame(X, columns=newCols)
 
     # Split train/test
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=1234)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=1555)
 
     def testRegressor(clf):
 
-        #grid = GridSearchCV(clf, param_grid, cv=3, verbose=1, n_jobs=-1)
-        #fitted_classifier = grid.fit(X_train, y_train)
-        #print(grid.best_score_, grid.best_params_)
-        #predictions = fitted_classifier.predict(X_train)
+        '''
+        #RF grid
+        param_grid = [{'n_estimators': range(320, 350, 10),
+                       'min_samples_split': range(2, 20, 2),
+                       'min_samples_leaf': range(2, 20, 2),
+                       'max_leaf_nodes': range(140, 170, 5)
+                       }]
+        grid = GridSearchCV(clf, param_grid, cv=3, verbose=1, n_jobs=-1)
+        fitted_classifier = grid.fit(X_train, y_train)
+        print(grid.best_score_, grid.best_params_)
+        predictions = fitted_classifier.predict(X_train)'''
+
+        '''
+        #XGB tuning - concept, not in use
+        param_grid = [{'max_depth': range(2, 4, 1),
+                       'min_child_weight': range(3, 6, 1),
+                       'n_estimators': range(80, 110, 10),
+                       'learning_rate': [0.1],
+                       'gamma': [0],
+                       'subsample': [0.9, 1],
+                       'colsample_bytree': [0.7],
+                       'reg_alpha': [15, 50, 100, 150, 200],
+                       'reg_lambda': [15, 20, 25, 30, 40, 50]}]
+        fit_params = {"early_stopping_rounds": 8,
+                      "eval_metric": "mae",
+                      "eval_set": [[X_test, y_test]],
+                      "verbose": False}
+        grid = GridSearchCV(clf, param_grid, fit_params=fit_params,
+                            cv=3, verbose=1, n_jobs=-1)
+        fitted_classifier = grid.fit(X_train, y_train)
+        print(grid.best_score_, grid.best_params_)
+        predictions = fitted_classifier.predict(X_train)
+        '''
 
         fitted = clf.fit(X_train, y_train)
         scoresCV = cross_val_score(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
@@ -83,27 +111,41 @@ def main():
         trainPredictions = clf.predict(X_train)
         testPredictions = clf.predict(X_test)
 
-        score1 = metrics.explained_variance_score(y_test, testPredictions)
-        score2 = metrics.mean_absolute_error(y_test, testPredictions)
-        score3 = metrics.mean_squared_error(y_test, testPredictions)
-        score4 = metrics.r2_score(y_test, testPredictions)
-        print('Train score: ', metrics.mean_absolute_error(y_train, trainPredictions))
+
+        score1 = metrics.explained_variance_score(y_test.values, testPredictions)
+        score2 = metrics.mean_absolute_error(y_test.values, testPredictions)
+        score3 = metrics.mean_squared_error(y_test.values, testPredictions)
+        score4 = metrics.r2_score(y_test.values, testPredictions)
+        print('Train score: ', metrics.mean_absolute_error(y_train.values, trainPredictions))
         print('CV score: ', scoresCV)
         print('Explained Variance Score, MAE, MSE, R^2')
         print(score1, score2, score3, score4)
 
+        tempIndex = range(0, len(y_test.values), 1)
+        plt.scatter(tempIndex, y_test.values, color='black', s = 20, alpha=0.8)
+        plt.scatter(tempIndex, testPredictions, color='red', s = 20, alpha=0.4)
+        plt.show()
+        #Results appear to be highly interesting
+        #MSE (and thus penalising large errors more) suggests that the model does not deal well with
+            #particular categories of retweets where there is a significant difference between true value and predicted
+        #Data appears to have high bias in terms of selection, as if tweets were selected from specific pools
+            #based on retweet value
+        #While the random forest deals well with those particular types of tweets, more analysis is needed
+
+        print('x')
+
     lr = LinearRegression()
+    dt = DecisionTreeRegressor()
     rf = RandomForestRegressor()
+    gb = xgboost.XGBRegressor()
 
 
-    print('LR')
-    testRegressor(lr)
-    # print('DT')
-    # testRegressor(dt)
+    #print('LR')
+    #testRegressor(lr)
     print('RF')
-    testRegressor(rf)
-    # print('et')
-    # testRegressor(et)
+    testRegressor(dt)
+    #print('XGB')
+    #testRegressor(gb)
 
 
 
