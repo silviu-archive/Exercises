@@ -11,7 +11,7 @@ from sklearn.externals import joblib
 def main():
 
     #Read csv and input into pandas dataframe
-    df = pd.read_csv('J:\Source\Exercises\Exercise3\tweets.csv', error_bad_lines=False, encoding='ISO-8859-1')
+    df = pd.read_csv('J:/Source/Exercises/Exercise3/tweets.csv', error_bad_lines=False, encoding='ISO-8859-1')
 
     #Quick summary of the dataframe
     description = df.describe()

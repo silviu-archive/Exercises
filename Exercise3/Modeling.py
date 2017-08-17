@@ -148,7 +148,7 @@ def main():
     #print('DT')
     #testRegressor(dt)
     print('RF')
-    testRegressor(rf)
+    testRegressor(dt)
     #print('XGB')
     #testRegressor(gb)
 
