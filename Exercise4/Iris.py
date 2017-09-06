@@ -27,6 +27,9 @@ from sklearn.externals import joblib
 #Implementation of a classification algorithm for the prediction of a new input's species
 #Define
 
+
+
+
 #Class defining column names
 class columnNames:
     columnItemID = 'ItemID'
@@ -37,14 +40,36 @@ class columnNames:
     columnPetalWidth = 'PetalWidth'
     columnClass = 'Class'
 
+#Function that asks user for input and checks if it can convert it to float
+def retrieveAndCheckInput(inputText):
+    try:
+        inputValue = float(input('%s: ' % inputText))
+        return inputValue
+    except ValueError:
+        print('Please enter a floating number')
+        sys.exit(0)
 
+#Method to initialize visualization dataframe (appending the first row as the user-defined plant)
+def createVisuaalizationDataframe(sepalLength, sepalWidth, petalLength, petalWidth):
+    dfVisualization = pd.DataFrame(columns = ['ItemID', 'DistanceToInput', 'SepalLength', 'SepalWidth', 'PetalLength',
+                                    'PetalWidth', 'Class'])
+    itemDict = {'ItemID': 'User',
+                'DistanceToInput': 0, #Distance from user item to itself will be zero
+                'SepalLength': sepalLength,
+                'SepalWidth': sepalWidth,
+                'PetalLength': petalLength,
+                'PetalWidth': petalWidth,
+                'Class': 'Unknown'}
+    dfVisualization = dfVisualization.append(itemDict, ignore_index=True)
+    return dfVisualization
 
 def main():
 
     #Read .data file (via csv reader in pandas)
     df = pd.read_csv('J:\Datasets\Exercises\Exercise4\iris.data', header=None)
     #Set column headers according to data docs
-    df.columns = ['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth', 'Class'] [columnNames.columnSepalLength, columnNames.columnSepalWidth, columnNames.columnPetalLength, columnNames.columnPetalWidth, columnNames.columnClass]
+    df.columns = [columnNames.columnSepalLength, columnNames.columnSepalWidth, columnNames.columnPetalLength,
+                  columnNames.columnPetalWidth, columnNames.columnClass]
 
     #Show summary statistics for the dataframe
     print('Summary Stats \n', df.describe())
@@ -70,46 +95,17 @@ def main():
     print('This program retrieves the top 10 similar data points from an existing dataset')
     print('These datapoints refer to similar Iris plant species')
     print('Please insert the following arguments to return the solution:')
-    #Retrieve input from user - if not a floating number, exit script with error message
-    try:
-        sepalLength = float(input('Sepal Length: '))
-    except ValueError:
-        print('Please enter a floating number')
-        sys.exit(0)
-    try:
-        sepalWidth = float(input('Sepal Width: '))
-    except ValueError:
-        print('Please enter a floating number')
-        sys.exit(0)
-    try:
-        petalLength = float(input('Petal Length: '))
-    except ValueError:
-        print('Please enter a floating number')
-        sys.exit(0)
-    try:
-        petalWidth = float(input('Petal Width: '))
-    except ValueError:
-        print('Please enter a floating number')
-        sys.exit(0)
 
-    #Save the items for later visualization, starting with the user input
+    #Retrieve input from user
+    sepalLength = retrieveAndCheckInput('SepalLength')
+    sepalWidth = retrieveAndCheckInput('SepalWidth')
+    petalLength = retrieveAndCheckInput('PetalLength')
+    petalWidth = retrieveAndCheckInput('PetalWidth')
 
-    #Method to initialize visualization dataframe (with )
-    def createVisuaalizationDataframe(sepalLength, sepalWidth, petalLength, petalWidth):
-        dfVisualization = pd.DataFrame(columns = ['ItemID', 'DistanceToInput', 'SepalLength', 'SepalWidth', 'PetalLength',
-                                        'PetalWidth', 'Class'])
-        itemDict = {'ItemID': 'User',
-                    'DistanceToInput': 0, #Distance from user item to itself will be zero
-                    'SepalLength': sepalLength,
-                    'SepalWidth': sepalWidth,
-                    'PetalLength': petalLength,
-                    'PetalWidth': petalWidth,
-                    'Class': 'Unknown'}
-        dfVisualization = dfVisualization.append(itemDict, ignore_index=True)
-        return dfVisualization
+    #Create visualization storage container, starting with the user input
+    dfVisualization = createVisuaalizationDataframe(sepalLength, sepalWidth, petalLength, petalWidth)
 
     print('The closest neighbors are (in descending order): ')
-
     distanceToNeighbors = nbrs.kneighbors([sepalLength, sepalWidth, petalLength, petalWidth])[0][0]
     neighborsIndices = nbrs.kneighbors([sepalLength, sepalWidth, petalLength, petalWidth])[1][0]
 
@@ -117,8 +113,9 @@ def main():
     for distance, index in zip(distanceToNeighbors, neighborsIndices):
         print('Item number %s by a distance of %s, with the following features: '
               'Sepal Length %s cm, Sepal Width %s cm, Petal Length %s cm, Petal Width %s cm; '
-              'The item belongs to the class %s' % (index, distance, df.loc[index][0], df.loc[index][1],
-                                                    df.loc[index][2], df.loc[index][3], df.loc[index][4]))
+              'The item belongs to the class %s' % (index, distance, df.loc[index, 'SepalLength'],
+                                                    df.loc[index, 'SepalWidth'], df.loc[index, 'PetalLength'],
+                                                    df.loc[index, 'PetalWidth'], df.loc[index, 'Class']))
         #Append neighbour attributes to visualization dataframe
         itemDict = {'ItemID': index,
                     'DistanceToInput': distance,
