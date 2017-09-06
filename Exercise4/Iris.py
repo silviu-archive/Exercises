@@ -8,26 +8,20 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.externals import joblib
 
 
-
 #The script reads a downloaded dataset from https://archive.ics.uci.edu/ml/datasets/Iris
-#The data is briefly analyzed in terms of relationships between attributes
+#The data is briefly analyzed in terms of relationships between attributes (correlations, pair plots)
 #The script takes as arguments attributes of a user-defined species of plant
 #The script retrieves the 10 most similar data points from the original dataset
 #The results are then displayed using a pair plot
 
-
 #No unit tests were created for the development of this script
-#However, try/except
+#However, exceptions are used to handle non-float inputs
 #The script was created and tested using PyCharm and the implemented step debugger
-
 
 #The solution could be expanded in multiple ways:
 #Initial data visualization / analysis could be more thorough - boxplots/violinplots of data, density
 #Saving the model via joblib / pickle, so that the model is not trained upon every iteration, but is stored on disk
 #Implementation of a classification algorithm for the prediction of a new input's species
-#Define
-
-
 
 
 #Class defining column names
@@ -53,13 +47,13 @@ def retrieveAndCheckInput(inputText):
 def createVisuaalizationDataframe(sepalLength, sepalWidth, petalLength, petalWidth):
     dfVisualization = pd.DataFrame(columns = ['ItemID', 'DistanceToInput', 'SepalLength', 'SepalWidth', 'PetalLength',
                                     'PetalWidth', 'Class'])
-    itemDict = {'ItemID': 'User',
-                'DistanceToInput': 0, #Distance from user item to itself will be zero
-                'SepalLength': sepalLength,
-                'SepalWidth': sepalWidth,
-                'PetalLength': petalLength,
-                'PetalWidth': petalWidth,
-                'Class': 'Unknown'}
+    itemDict = {columnNames.columnItemID: 'User',
+                columnNames.columnDistanceToInput: 0, #Distance from user item to itself will be zero
+                columnNames.columnSepalLength: sepalLength,
+                columnNames.columnSepalWidth: sepalWidth,
+                columnNames.columnPetalLength: petalLength,
+                columnNames.columnPetalWidth: petalWidth,
+                columnNames.columnClass: 'Unknown'}
     dfVisualization = dfVisualization.append(itemDict, ignore_index=True)
     return dfVisualization
 
@@ -79,7 +73,7 @@ def main():
     plt.title('Correlation Table')
 
     #Plot relationships between the 4 variables (taking into account Class distributions as well)
-    sns.pairplot(df, hue='Class')
+    sns.pairplot(df, hue=columnNames.columnClass)
     #Based on the pairplot, setosa appears to be linearly separable from verginica and versicolour
 
 
@@ -97,10 +91,10 @@ def main():
     print('Please insert the following arguments to return the solution:')
 
     #Retrieve input from user
-    sepalLength = retrieveAndCheckInput('SepalLength')
-    sepalWidth = retrieveAndCheckInput('SepalWidth')
-    petalLength = retrieveAndCheckInput('PetalLength')
-    petalWidth = retrieveAndCheckInput('PetalWidth')
+    sepalLength = retrieveAndCheckInput(columnNames.columnSepalLength)
+    sepalWidth = retrieveAndCheckInput(columnNames.columnSepalWidth)
+    petalLength = retrieveAndCheckInput(columnNames.columnPetalLength)
+    petalWidth = retrieveAndCheckInput(columnNames.columnPetalWidth)
 
     #Create visualization storage container, starting with the user input
     dfVisualization = createVisuaalizationDataframe(sepalLength, sepalWidth, petalLength, petalWidth)
@@ -113,38 +107,25 @@ def main():
     for distance, index in zip(distanceToNeighbors, neighborsIndices):
         print('Item number %s by a distance of %s, with the following features: '
               'Sepal Length %s cm, Sepal Width %s cm, Petal Length %s cm, Petal Width %s cm; '
-              'The item belongs to the class %s' % (index, distance, df.loc[index, 'SepalLength'],
-                                                    df.loc[index, 'SepalWidth'], df.loc[index, 'PetalLength'],
-                                                    df.loc[index, 'PetalWidth'], df.loc[index, 'Class']))
+              'The item belongs to the class %s' % (index, distance, df.loc[index, columnNames.columnSepalLength],
+                                                    df.loc[index, columnNames.columnSepalWidth],
+                                                    df.loc[index, columnNames.columnPetalLength],
+                                                    df.loc[index, columnNames.columnPetalWidth],
+                                                    df.loc[index, columnNames.columnClass]))
         #Append neighbour attributes to visualization dataframe
-        itemDict = {'ItemID': index,
-                    'DistanceToInput': distance,
-                    'SepalLength': df.loc[index, 'SepalLength'],
-                    'SepalWidth': df.loc[index, 'SepalWidth'],
-                    'PetalLength': df.loc[index, 'PetalLength'],
-                    'PetalWidth': df.loc[index, 'PetalWidth'],
-                    'Class': df.loc[index, 'Class']}
+        itemDict = {columnNames.columnItemID: index,
+                    columnNames.columnDistanceToInput: distance,
+                    columnNames.columnSepalLength: df.loc[index, columnNames.columnSepalLength],
+                    columnNames.columnSepalWidth: df.loc[index, columnNames.columnSepalWidth],
+                    columnNames.columnPetalLength: df.loc[index, columnNames.columnPetalLength],
+                    columnNames.columnPetalWidth: df.loc[index, columnNames.columnPetalWidth],
+                    columnNames.columnClass: df.loc[index, columnNames.columnClass]}
         dfVisualization = dfVisualization.append(itemDict, ignore_index=True)
 
 
-
-
-
     #Plot relationships between the user input and the 10 closest neighbors
-    sns.pairplot(dfVisualization, hue='Class')
+    sns.pairplot(dfVisualization, hue=columnNames.columnClass)
     plt.show()
-
-
-
-    print('x')
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
