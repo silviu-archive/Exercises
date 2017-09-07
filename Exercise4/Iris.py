@@ -3,10 +3,13 @@ import matplotlib.pyplot as plt #2.0.2
 import seaborn as sns #0.7.1
 import sys
 import warnings
-
 from sklearn.neighbors import NearestNeighbors
 from sklearn.externals import joblib
 
+#To run the script, the user requires a Python 3.x environment with the above libraries available
+#The dataset path needs to be defined within the script contents
+#The script can be run from a terminal (command prompt) by calling python and the name of the script
+#e.g. "python Iris.py" (if python is setup as a system environment path)
 
 #The script reads a downloaded dataset from https://archive.ics.uci.edu/ml/datasets/Iris
 #The data is briefly analyzed in terms of relationships between attributes (correlations, pair plots)
@@ -15,14 +18,14 @@ from sklearn.externals import joblib
 #The results are then displayed using a pair plot
 
 #No unit tests were created for the development of this script
-#However, exceptions are used to handle non-float inputs
+#However, exceptions are used to handle non-float inputs for the time being
 #The script was created and tested using PyCharm and the implemented step debugger
 
 #The solution could be expanded in multiple ways:
-#Initial data visualization / analysis could be more thorough - boxplots/violinplots of data, density
+#Initial data visualization / analysis could be more thorough - boxplots/violinplots of data, density estimations
 #Saving the model via joblib / pickle, so that the model is not trained upon every iteration, but is stored on disk
 #Implementation of a classification algorithm for the prediction of a new input's species
-
+#More detailed comparison between the input plant and its neighbours
 
 #Class defining column names
 class columnNames:
@@ -59,8 +62,11 @@ def createVisuaalizationDataframe(sepalLength, sepalWidth, petalLength, petalWid
 
 def main():
 
+    #Define dataset path
+    filePath = 'J:\Datasets\Exercises\Exercise4\iris.data'
+    
     #Read .data file (via csv reader in pandas)
-    df = pd.read_csv('J:\Datasets\Exercises\Exercise4\iris.data', header=None)
+    df = pd.read_csv(filePath, header=None)
     #Set column headers according to data docs
     df.columns = [columnNames.columnSepalLength, columnNames.columnSepalWidth, columnNames.columnPetalLength,
                   columnNames.columnPetalWidth, columnNames.columnClass]
@@ -76,8 +82,7 @@ def main():
     sns.pairplot(df, hue=columnNames.columnClass)
     #Based on the pairplot, setosa appears to be linearly separable from verginica and versicolour
 
-
-
+    
     #Select the attributes defining a species of Iris plant
     X = df.iloc[:, :-1].values
 
@@ -126,7 +131,6 @@ def main():
     #Plot relationships between the user input and the 10 closest neighbors
     sns.pairplot(dfVisualization, hue=columnNames.columnClass)
     plt.show()
-
 
 if __name__ == '__main__':
     warnings.filterwarnings("ignore", category=DeprecationWarning)
