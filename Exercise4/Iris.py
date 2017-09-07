@@ -26,6 +26,7 @@ from sklearn.externals import joblib
 #Saving the model via joblib / pickle, so that the model is not trained upon every iteration, but is stored on disk
 #Implementation of a classification algorithm for the prediction of a new input's species
 #More detailed comparison between the input plant and its neighbours
+#Saving audit trails of inputs in files / database
 
 #Class defining column names
 class columnNames:
@@ -48,8 +49,10 @@ def retrieveAndCheckInput(inputText):
 
 #Method to initialize visualization dataframe (appending the first row as the user-defined plant)
 def createVisuaalizationDataframe(sepalLength, sepalWidth, petalLength, petalWidth):
-    dfVisualization = pd.DataFrame(columns = ['ItemID', 'DistanceToInput', 'SepalLength', 'SepalWidth', 'PetalLength',
-                                    'PetalWidth', 'Class'])
+    dfVisualization = pd.DataFrame(columns = [columnNames.columnItemID, columnNames.columnDistanceToInput,
+                                              columnNames.columnSepalLength, columnNames.columnSepalWidth,
+                                              columnNames.columnPetalLength, columnNames.columnPetalWidth,
+                                              columnNames.columnClass])
     itemDict = {columnNames.columnItemID: 'User',
                 columnNames.columnDistanceToInput: 0, #Distance from user item to itself will be zero
                 columnNames.columnSepalLength: sepalLength,
