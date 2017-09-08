@@ -16,7 +16,7 @@ def readData():
     parsedLines = []
     for line in lines[81:121]:
         splitLine = line.split(sep='#')
-        parsedLines.append('#' + splitLine[-1])
+        parsedLines.append('#' + splitLine[-1][:-1])
     #Append a target column name to the parsed lines
     parsedLines.append('#40 (target) nominal')
 
@@ -27,5 +27,4 @@ def readData():
     #Assign column names from parser
     df.columns = parsedLines
 
-if __name__ == '__main__':
-    readData()
+    return df
