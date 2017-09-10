@@ -1,11 +1,19 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import VarianceThreshold, SelectPercentile, SelectFromModel
 from sklearn.model_selection import train_test_split, cross_val_predict, cross_val_score, GridSearchCV
 from sklearn.tree import ExtraTreeClassifier, DecisionTreeClassifier
 from sklearn import metrics
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+
+from imblearn.under_sampling import RandomUnderSampler, CondensedNearestNeighbour
+from imblearn.combine import SMOTEENN
+
+import xgboost
 
 from DataProcessing import preprocessData
 
@@ -30,6 +38,17 @@ def trainModel():
     X = sc.fit_transform(X)
     X = pd.DataFrame(X, columns=colNames)
 
+    # The dataset is heavily imbalanced in terms of classes, and balancing procedures need to be conducted
+    # Testing various under / over / combined sampling procedures
+    # Some of these procedures are very computationally expensive (and thus are not suitable for home use e.g. SMOTEENN)
+    rus = RandomUnderSampler()
+    X, y = rus.fit_sample(X, y)
+    #sme = SMOTEENN(n_jobs=-1)
+    #X, y, = sme.fit_sample(X, y)
+
+    X = pd.DataFrame(X, columns=colNames)
+    y = pd.Series(y, name='#40 (target) nominal')
+
     # Remove features with less than 20% variance
     colNames = X.columns
     sel = VarianceThreshold(threshold=0.16)
@@ -43,7 +62,7 @@ def trainModel():
 
     # Perform univariate feature selection (ANOVA F-values)
     colNames = X.columns
-    selection_Percent = SelectPercentile(percentile=20)
+    selection_Percent = SelectPercentile(percentile=50)
     X = selection_Percent.fit_transform(X, y)
     # Get column names back
     newCols = []
@@ -64,8 +83,7 @@ def trainModel():
             newCols.append(col)
     X = pd.DataFrame(X, columns=newCols)
 
-
-    # Tranform test set to contain same features as train set
+    # Transform test set to contain same features as train set
     dfTestTarget = dfTest['#40 (target) nominal']
     dfTest = dfTest[X.columns]
 
@@ -121,31 +139,28 @@ def trainModel():
         #plt.scatter(tempIndex, testPredictions, color='red', s = 20, alpha=0.4)
         #plt.show()
 
-        #Results appear to be highly interesting
-        #MSE (and thus penalising large errors more) suggests that the model does not deal well with
-            #particular categories of retweets where there is a significant difference between true value and predicted
-        #Data appears to have high bias in terms of selection, as if tweets were selected from specific pools
-            #based on retweet value
-        #While the random forest deals well with those particular types of tweets, more analysis is needed
-        # Further steps would start by understanding the sampling procedure that produced these tweets
-            # From there, features need to be relooked at, dimensionality reduction (such as PCA) might be needed
-            # Simpler / more powerful models to then be appropriately applied
-        #The target retweets actually seem to be created from a Decision Tree Model
+
+
         print('x')
 
 
-
-
+    print('LR')
+    lr = LogisticRegression()
+    testClassifier(lr)
     print('DT')
     dt = DecisionTreeClassifier()
     testClassifier(dt)
-    #print('RF')
-    #testClassifier(dt)
-    #print('XGB')
-    #testClassifier(gb)
+    print('RF')
+    rf = RandomForestClassifier()
+    testClassifier(rf)
+    print('XGB')
+    gb = xgboost.XGBClassifier()
+    testClassifier(gb)
 
 
 
 
 if __name__ == '__main__':
+    import warnings
+    warnings.filterwarnings('ignore')
     trainModel()
