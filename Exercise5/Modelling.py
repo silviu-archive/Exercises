@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import VarianceThreshold, SelectPercentile, SelectFromModel
 from sklearn.model_selection import train_test_split, cross_val_predict, cross_val_score, GridSearchCV
 from sklearn.tree import ExtraTreeClassifier, DecisionTreeClassifier
@@ -55,9 +55,9 @@ def trainModel():
     X = pd.DataFrame(X, columns=newCols)
 
     #Perform dimensionality reduction using PCA
-    pca = PCA(n_components=16)
+    pca = PCA(n_components=5)
     pca.fit(X)
-    #PCA scree plot - aid in determining number of components (chosen as 16)
+    #PCA scree plot - aid in determining number of components
     plt.figure(1, figsize=(4, 3))
     plt.clf()
     plt.axes([.2, .2, .7, .7])
@@ -65,8 +65,11 @@ def trainModel():
     plt.axis('tight')
     plt.xlabel('n_components')
     plt.ylabel('explained_variance_')
+    #plt.show()
 
     #Create PCA dataframe and append to original
+    #Adding principle components adds additional insight to the dataframe
+    #If PCs do not perform well, they will be removed in further feature selection procedures
     dfPCA = pd.DataFrame(pca.transform(X))
     newCols = []
     for col in dfPCA.columns:
@@ -87,7 +90,7 @@ def trainModel():
     X = pd.DataFrame(X, columns=newCols)
 
     # Perform tree-based feature selection
-    clf = ExtraTreeClassifier()
+    '''clf = ExtraTreeClassifier()
     clf = clf.fit(X, y)
     colNames = X.columns
     sel = SelectFromModel(clf, prefit=True)
@@ -96,13 +99,16 @@ def trainModel():
     for remain, col in zip(sel.get_support(), colNames):
         if remain == True:
             newCols.append(col)
-    X = pd.DataFrame(X, columns=newCols)
+    X = pd.DataFrame(X, columns=newCols)'''
 
 
     #Split train and test set
     #Create new test set column in X
     X['TestSet'] = flag['TestSet'].tolist()
     X['Target'] = y.tolist()
+    #Encode target (to binary) - for ROC AUC metric (0 for under 50k, 1 for over)
+    le = LabelEncoder()
+    X['Target'] = le.fit_transform(X['Target'])
     #Copy in dfTest all the test set values from X
     dfTest = X.loc[X['TestSet'] == 1]
     #Re-write X with only learning set values
@@ -121,12 +127,14 @@ def trainModel():
     # The dataset is heavily imbalanced in terms of classes, and balancing procedures need to be conducted
     # Testing various under / over / combined sampling procedures
     # Some of these procedures are very computationally expensive (and thus are not suitable for home use e.g. SMOTEENN)
-    rus = RandomUnderSampler()
-    X, y = rus.fit_sample(X, y)
+    #rus = RandomUnderSampler()
+    #X, y = rus.fit_sample(X, y)
     #sme = SMOTEENN(n_jobs=-1)
     #X, y, = sme.fit_sample(X, y)
     X = pd.DataFrame(X, columns=colNames)
     y = pd.Series(y, name='Target')
+
+
 
     #Define train/test variables
     X_train = X
@@ -167,26 +175,31 @@ def trainModel():
 
 
         score1 = metrics.accuracy_score(y_test.values, testPredictions)
-        #score2 = metrics.auc(y_test.values, testPredictions)
+        score2 = metrics.roc_auc_score(y_test.values, testPredictions)
         score3 = metrics.cohen_kappa_score(y_test.values, testPredictions)
         score4 = metrics.classification_report(y_test.values, testPredictions)
         print('Train score: ', metrics.accuracy_score(y_train.values, trainPredictions))
         print('CV score: ', scoresCV)
-        print('Accuracy score, AUC, Cohen Kappa, Classification Report')
-        print(score1, score3, score4)
+        print('Accuracy score, ROC AUC, Cohen Kappa')
+        print(score1, score2, score3)
+        print('Classification Report')
+        print(score4)
 
-        #tempIndex = range(0, len(y_test.values), 1)
-        #plt.scatter(tempIndex, y_test.values, color='black', s = 20, alpha=0.8)
-        #plt.scatter(tempIndex, testPredictions, color='red', s = 20, alpha=0.4)
-        #plt.show()
+        #WITH UNDER-SAMPLING
+        #Low Precision in Class 1 (~0.28) = suggests that too many salaries are labeled as >50k when they are <50k
+            #Could be a potential after-effect of under-sampling
+        #High Recall in Class 1 (~0.90) = suggests that the classifier is able to find all positive samples
 
+        #WITHOUT UNDER-SAMPLING
+        #High Precision in Class 1 (~0.76) = suggests that the classifiers handles negative samples well
+        #Low Recall in Class 1 (~0.39) = suggests that the classifier is not able to find all positive samples
 
 
         print('x')
 
 
     print('LR')
-    lr = LogisticRegression()
+    lr = LogisticRegression(C = 100)
     testClassifier(lr)
     print('DT')
     dt = DecisionTreeClassifier()
