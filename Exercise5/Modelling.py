@@ -126,8 +126,8 @@ def trainModel():
     # The dataset is heavily imbalanced in terms of classes, and balancing procedures need to be conducted
     # Testing various under / over / combined sampling procedures
     # Some of these procedures are very computationally expensive (and thus are not suitable for home use e.g. SMOTEENN)
-    #rus = RandomUnderSampler()
-    #X, y = rus.fit_sample(X, y)
+    rus = RandomUnderSampler()
+    X, y = rus.fit_sample(X, y)
     #sme = SMOTEENN(n_jobs=-1)
     #X, y, = sme.fit_sample(X, y)
     X = pd.DataFrame(X, columns=colNames)
