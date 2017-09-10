@@ -6,6 +6,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import VarianceThreshold, SelectPercentile, SelectFromModel
 from sklearn.model_selection import train_test_split, cross_val_predict, cross_val_score, GridSearchCV
 from sklearn.tree import ExtraTreeClassifier, DecisionTreeClassifier
+from sklearn.decomposition import PCA
+from sklearn.pipeline import FeatureUnion
 from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -19,15 +21,18 @@ from DataProcessing import preprocessData
 
 def trainModel():
 
+    #Read processed dataframe
     df = preprocessData()
 
-    #Split train and test set
-    dfTest = df.loc[df['TestSet'] == 1]
-    df = df.loc[df['TestSet'] == 0]
+    #Move test set indicator to the 2nd position of the dataframe
+    cols = list(df)
+    cols.insert(1, cols.pop(cols.index('TestSet')))
+    df = df.ix[:, cols]
 
     # Split dataframe into target and features
     y = df.iloc[:, 0]  # .as_matrix()
-    X = df.iloc[:, 1:]  # .as_matrix()
+    flag = pd.DataFrame(df.iloc[:, 1]) # .as_matrix()
+    X = df.iloc[:, 2:]  # .as_matrix()
 
     # Apply standard scaler in order to remove mean and scale to unit variance (so large-valued features won't
         #heavily influence the model)
@@ -37,17 +42,6 @@ def trainModel():
     colNames = X.columns
     X = sc.fit_transform(X)
     X = pd.DataFrame(X, columns=colNames)
-
-    # The dataset is heavily imbalanced in terms of classes, and balancing procedures need to be conducted
-    # Testing various under / over / combined sampling procedures
-    # Some of these procedures are very computationally expensive (and thus are not suitable for home use e.g. SMOTEENN)
-    rus = RandomUnderSampler()
-    X, y = rus.fit_sample(X, y)
-    #sme = SMOTEENN(n_jobs=-1)
-    #X, y, = sme.fit_sample(X, y)
-
-    X = pd.DataFrame(X, columns=colNames)
-    y = pd.Series(y, name='#40 (target) nominal')
 
     # Remove features with less than 20% variance
     colNames = X.columns
@@ -59,6 +53,27 @@ def trainModel():
         if remain == True:
             newCols.append(col)
     X = pd.DataFrame(X, columns=newCols)
+
+    #Perform dimensionality reduction using PCA
+    pca = PCA(n_components=16)
+    pca.fit(X)
+    #PCA scree plot - aid in determining number of components (chosen as 16)
+    plt.figure(1, figsize=(4, 3))
+    plt.clf()
+    plt.axes([.2, .2, .7, .7])
+    plt.plot(pca.explained_variance_, linewidth=2)
+    plt.axis('tight')
+    plt.xlabel('n_components')
+    plt.ylabel('explained_variance_')
+
+    #Create PCA dataframe and append to original
+    dfPCA = pd.DataFrame(pca.transform(X))
+    newCols = []
+    for col in dfPCA.columns:
+        name = 'PCA' + str(col)
+        newCols.append(name)
+    dfPCA.columns = newCols
+    X = pd.merge(X, dfPCA, left_index=True, right_index=True)
 
     # Perform univariate feature selection (ANOVA F-values)
     colNames = X.columns
@@ -82,6 +97,33 @@ def trainModel():
         if remain == True:
             newCols.append(col)
     X = pd.DataFrame(X, columns=newCols)
+
+
+    #Split train and test set
+    X['TestSet'] = flag['TestSet']
+    dfTest = X.loc[df['TestSet'] == 1]
+    df = df.loc[df['TestSet'] == 0]
+
+
+
+    # The dataset is heavily imbalanced in terms of classes, and balancing procedures need to be conducted
+    # Testing various under / over / combined sampling procedures
+    # Some of these procedures are very computationally expensive (and thus are not suitable for home use e.g. SMOTEENN)
+    rus = RandomUnderSampler()
+    X, y = rus.fit_sample(X, y)
+    #sme = SMOTEENN(n_jobs=-1)
+    #X, y, = sme.fit_sample(X, y)
+    X = pd.DataFrame(X, columns=colNames)
+    y = pd.Series(y, name='#40 (target) nominal')
+
+
+
+
+
+    #Split train and test set
+    dfTest = df.loc[df['TestSet'] == 1]
+    df = df.loc[df['TestSet'] == 0]
+
 
     # Transform test set to contain same features as train set
     dfTestTarget = dfTest['#40 (target) nominal']
@@ -157,10 +199,7 @@ def trainModel():
     gb = xgboost.XGBClassifier()
     testClassifier(gb)
 
-
-
-
 if __name__ == '__main__':
     import warnings
-    warnings.filterwarnings('ignore')
+    warnings.filterwarnings("ignore")
     trainModel()

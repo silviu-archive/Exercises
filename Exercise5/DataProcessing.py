@@ -1,5 +1,6 @@
+import warnings
+warnings.filterwarnings("ignore")
 import pandas as pd
-
 from sklearn.externals import joblib
 
 from BasicStatistics import createStats
