@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import VarianceThreshold, SelectPercentile, SelectFromModel
 from sklearn.model_selection import train_test_split, cross_val_predict, cross_val_score, GridSearchCV
-from sklearn.tree import ExtraTreeClassifier, DecisionTreeClassifier
+from sklearn.tree import ExtraTreeClassifier, DecisionTreeClassifier, export_graphviz
 from sklearn.decomposition import PCA
 from sklearn.pipeline import FeatureUnion
 from sklearn import metrics
@@ -90,7 +90,7 @@ def trainModel():
     X = pd.DataFrame(X, columns=newCols)
 
     # Perform tree-based feature selection
-    '''clf = ExtraTreeClassifier()
+    clf = ExtraTreeClassifier()
     clf = clf.fit(X, y)
     colNames = X.columns
     sel = SelectFromModel(clf, prefit=True)
@@ -99,8 +99,7 @@ def trainModel():
     for remain, col in zip(sel.get_support(), colNames):
         if remain == True:
             newCols.append(col)
-    X = pd.DataFrame(X, columns=newCols)'''
-
+    X = pd.DataFrame(X, columns=newCols)
 
     #Split train and test set
     #Create new test set column in X
@@ -133,8 +132,6 @@ def trainModel():
     #X, y, = sme.fit_sample(X, y)
     X = pd.DataFrame(X, columns=colNames)
     y = pd.Series(y, name='Target')
-
-
 
     #Define train/test variables
     X_train = X
@@ -173,7 +170,6 @@ def trainModel():
         trainPredictions = clf.predict(X_train)
         testPredictions = clf.predict(X_test)
 
-
         score1 = metrics.accuracy_score(y_test.values, testPredictions)
         score2 = metrics.roc_auc_score(y_test.values, testPredictions)
         score3 = metrics.cohen_kappa_score(y_test.values, testPredictions)
@@ -194,22 +190,21 @@ def trainModel():
         #High Precision in Class 1 (~0.76) = suggests that the classifiers handles negative samples well
         #Low Recall in Class 1 (~0.39) = suggests that the classifier is not able to find all positive samples
 
-
-        print('x')
-
+        return clf
 
     print('LR')
     lr = LogisticRegression(C = 100)
-    testClassifier(lr)
+    clf = testClassifier(lr)
     print('DT')
     dt = DecisionTreeClassifier()
-    testClassifier(dt)
+    clf = testClassifier(dt)
+    export_graphviz(clf, out_file = 'tree.dot')
     print('RF')
     rf = RandomForestClassifier()
-    testClassifier(rf)
+    clf = testClassifier(rf)
     print('XGB')
     gb = xgboost.XGBClassifier()
-    testClassifier(gb)
+    clf = testClassifier(gb)
 
 if __name__ == '__main__':
     import warnings
