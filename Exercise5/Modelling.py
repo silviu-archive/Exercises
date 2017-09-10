@@ -169,6 +169,7 @@ def trainModel():
 
         trainPredictions = clf.predict(X_train)
         testPredictions = clf.predict(X_test)
+        #X_test['Predictions'] = testPredictions
 
         score1 = metrics.accuracy_score(y_test.values, testPredictions)
         score2 = metrics.roc_auc_score(y_test.values, testPredictions)
