@@ -100,11 +100,23 @@ def trainModel():
 
 
     #Split train and test set
-    X['TestSet'] = flag['TestSet']
-    dfTest = X.loc[df['TestSet'] == 1]
-    df = df.loc[df['TestSet'] == 0]
-
-
+    #Create new test set column in X
+    X['TestSet'] = flag['TestSet'].tolist()
+    X['Target'] = y.tolist()
+    #Copy in dfTest all the test set values from X
+    dfTest = X.loc[X['TestSet'] == 1]
+    #Re-write X with only learning set values
+    X = X.loc[X['TestSet'] == 0]
+    #Define test set target
+    dfTestTarget = dfTest['Target']
+    #Remove target and 'test set' column from test dataframe
+    dfTest.drop(['TestSet', 'Target'], axis=1, inplace=True)
+    #Create new learning target series
+    y = X['Target']
+    #Drop newly inserted columns from learning dataframe
+    X.drop(['TestSet', 'Target'], axis=1, inplace=True)
+    #Retain column names
+    colNames = X.columns
 
     # The dataset is heavily imbalanced in terms of classes, and balancing procedures need to be conducted
     # Testing various under / over / combined sampling procedures
@@ -114,20 +126,7 @@ def trainModel():
     #sme = SMOTEENN(n_jobs=-1)
     #X, y, = sme.fit_sample(X, y)
     X = pd.DataFrame(X, columns=colNames)
-    y = pd.Series(y, name='#40 (target) nominal')
-
-
-
-
-
-    #Split train and test set
-    dfTest = df.loc[df['TestSet'] == 1]
-    df = df.loc[df['TestSet'] == 0]
-
-
-    # Transform test set to contain same features as train set
-    dfTestTarget = dfTest['#40 (target) nominal']
-    dfTest = dfTest[X.columns]
+    y = pd.Series(y, name='Target')
 
     #Define train/test variables
     X_train = X
