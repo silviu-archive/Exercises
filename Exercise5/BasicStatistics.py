@@ -5,9 +5,9 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.externals import joblib
 
 from ReadData import readData
-
 
 def createStats():
 
@@ -26,13 +26,16 @@ def createStats():
     #Display gaps (from missing values) in the dataset - remove comment for display
     #It is commented out as 'missingno' library automatically pauses script running to display graph
     #msno.matrix(df)
+    #On a first parse, there appears to be no missing data
 
-    '''
     #NOMINAL FEATURES
     for columnName in df.columns:
 
         #Check if the variable is nominal - alternatively, could have checked by dtype
         if re.search('nominal', columnName):
+
+            #Strip whitespace
+            df[columnName] = df[columnName].str.strip()
 
             #Plot counts of nominal values
             plt.figure()
@@ -59,11 +62,11 @@ def createStats():
             leastFrequentPercent = labelCounts[-1] / labelSum
             print('The most frequent label accounts for %s of the data, while the least frequent accounts for %s.' %
                   (mostFrequentPercent, leastFrequentPercent))
-    '''
 
     #CONTINUOUS VARIABLES
     #Firstly, provide pandas summary table - provides data counts, mean, std, min, max, 25/50/75 percentiles
     print('\n', df.describe())
+    #Shows that wage per hour / capital gains / capital losses / dividends from stock are mostly 0 - potentially missing
 
     #Plot correlations
     corr = df.corr()
@@ -72,26 +75,35 @@ def createStats():
     plt.xticks(rotation=25)
     plt.yticks(rotation=0)
     plt.title('Correlations between continuous variables')
+    #Strong correlations between weeks worked in year and number of persons worked for employer
 
+    #Store continuous variable names
     continousVariableNames = []
     for columnName in df.columns:
 
-        #Check if the variable is nominal - alternatively, could have checked by dtype
+        #Check if the variable is continuous - alternatively, could have checked by dtype
         if re.search('continuous', columnName):
-
-
+            #Append to storage list for later processing
             continousVariableNames.append(columnName)
 
-            #Plot histograms
+            #Plot histograms / violin plots for each continuous variable to show distribution of values
             plt.figure()
             sns.distplot(df[columnName], rug=False, kde=False)
+            plt.figure()
+            sns.violinplot(df[columnName])
+            #Histograms are dominated by one or two values (some which appear to be filled in for missing values)
+                #or a large imbalance in the population
 
-    plt.show()
+    #Based on the information observed in the dataframe, missing values appear to be replaced with
+    #'Not in universe' or 0 or '0' or '?'
+    dfNullsIncluded = df.replace(['Not in universe', 0, '0', '?', 'Not in universe or children', 'Nonfiler', ],
+                                 value=np.nan)
+    #Replacing the above with null values, we can create the missing value chart again
+    msno.matrix(dfNullsIncluded)
+    #Based on this missing value matrix, we recommend data improvements across the board
+    #Due to time limitations for this exercise, the analysis procedure ends here
+    #However, we would spend additional time understanding the dataset, its source, and provide a highly
+        #detailed report for each variable, or focus on a particular area, depending on task specifications
 
-    print('x')
-
-
-
-
-if __name__ == '__main__':
-    createStats()
+    #Dump the transformed dataset into a pickle file for easy pickup in later scripts
+    joblib.dump(df, 'J:\Datasets\Exercises\Exercise5\BasicDataset.pkl')
