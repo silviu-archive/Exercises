@@ -14,6 +14,8 @@ def createStats():
     #Read parsed dataframe
     df = readData()
 
+    #Basic statistics will be conducted on the whole dataset (train + test)
+
     #Verify that all columns are of the appropriate datatypes
     dfTypes = df.dtypes
     #If not, assign data type
@@ -29,6 +31,8 @@ def createStats():
     #On a first parse, there appears to be no missing data
 
     #NOMINAL FEATURES
+    #Store continuous variable names
+    nominalVariableNames = []
     for columnName in df.columns:
 
         #Check if the variable is nominal - alternatively, could have checked by dtype
@@ -36,6 +40,9 @@ def createStats():
 
             #Strip whitespace
             df[columnName] = df[columnName].str.strip()
+
+            #Append to storage list for later processing - for example for one-hot encoding
+            nominalVariableNames.append(columnName)
 
             #Plot counts of nominal values
             plt.figure()
@@ -83,7 +90,7 @@ def createStats():
 
         #Check if the variable is continuous - alternatively, could have checked by dtype
         if re.search('continuous', columnName):
-            #Append to storage list for later processing
+            #Append to storage list for later processing - for example for hypothesis testing (not currently implemented)
             continousVariableNames.append(columnName)
 
             #Plot histograms / violin plots for each continuous variable to show distribution of values
@@ -99,11 +106,13 @@ def createStats():
     dfNullsIncluded = df.replace(['Not in universe', 0, '0', '?', 'Not in universe or children', 'Nonfiler', ],
                                  value=np.nan)
     #Replacing the above with null values, we can create the missing value chart again
-    msno.matrix(dfNullsIncluded)
+    #msno.matrix(dfNullsIncluded)
+
     #Based on this missing value matrix, we recommend data improvements across the board
     #Due to time limitations for this exercise, the analysis procedure ends here
     #However, we would spend additional time understanding the dataset, its source, and provide a highly
         #detailed report for each variable, or focus on a particular area, depending on task specifications
 
-    #Dump the transformed dataset into a pickle file for easy pickup in later scripts
+    #Dump the transformed dataset (and column names) into a pickle file for easy pickup in later scripts
     joblib.dump(df, 'J:\Datasets\Exercises\Exercise5\BasicDataset.pkl')
+    joblib.dump((nominalVariableNames, continousVariableNames), 'J:\Datasets\Exercises\Exercise5\VariableNames.pkl')

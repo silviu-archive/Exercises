@@ -5,6 +5,7 @@ def readData():
 
     #Define paths for learning and metadata files
     learnDatasetPath = 'J:\Datasets\Exercises\Exercise5\census_income_learn.csv'
+    testDatasetPath = 'J:\Datasets\Exercises\Exercise5\census_income_test.csv'
     metadataPath = 'J:\Datasets\Exercises\Exercise5\census_income_metadata.txt'
 
     #Read metadata file line by line
@@ -20,11 +21,19 @@ def readData():
     #Append a target column name to the parsed lines
     parsedLines.append('#40 (target) nominal')
 
-    #Read learning dataframe
+    #Read learning & test dataframe
     df = pd.read_csv(learnDatasetPath, header=None)
+    dfTest = pd.read_csv(testDatasetPath, header=None)
+
+    #Join learn and test together, but add a flag to be able to identify them later on
+    df['TestSet'] = 0
+    dfTest['TestSet'] = 1
+    df = df.append(dfTest)
+
     #Drop 'instance weight' column as described in metadata
     df.drop([24], axis=1, inplace=True)
-    #Assign column names from parser
+    #Assign column names from parser (including newly created 'TestSet' column)
+    parsedLines.append('TestSet')
     df.columns = parsedLines
 
     return df
