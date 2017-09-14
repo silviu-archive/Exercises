@@ -56,7 +56,7 @@ def trainModel():
     X = pd.DataFrame(X, columns=newCols)
 
     #Perform dimensionality reduction using PCA
-    pca = PCA(n_components=5)
+    pca = PCA(n_components=14)
     pca.fit(X)
     #PCA scree plot - aid in determining number of components
     plt.figure(1, figsize=(4, 3))
