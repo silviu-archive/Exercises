@@ -44,10 +44,10 @@ def createStats():
             #Append to storage list for later processing - for example for one-hot encoding
             nominalVariableNames.append(columnName)
 
-            #Plot counts of nominal values
-            plt.figure()
+            #Plot counts of nominal values - commented out for simplicity of results
+            '''plt.figure()
             sns.countplot(x=columnName, data=df)
-            plt.xticks(rotation=30)
+            plt.xticks(rotation=30)'''
 
             #Print top/bottom 3 lables and information about them:
             labelCounts = df[columnName].value_counts()
@@ -94,12 +94,41 @@ def createStats():
             continousVariableNames.append(columnName)
 
             #Plot histograms / violin plots for each continuous variable to show distribution of values
-            plt.figure()
+            #Commented out for simplicity of results
+            '''plt.figure()
             sns.distplot(df[columnName], rug=False, kde=False)
             plt.figure()
-            sns.violinplot(df[columnName])
+            sns.violinplot(df[columnName])'''
             #Histograms are dominated by one or two values (some which appear to be filled in for missing values)
                 #or a large imbalance in the population
+
+
+
+    #Some additional visualizations are created in respect to the target variable
+
+    #We would like to understand the relationship between a few different features and the target:
+    plt.figure()
+    sns.countplot(x='#0 (age) continuous', hue='#40 (target) nominal', data=df)
+    plt.xticks(rotation=30)
+    plt.figure()
+    sns.countplot(x='#4 (education) nominal', hue='#40 (target) nominal', data=df)
+    plt.xticks(rotation=30)
+    plt.figure()
+    sns.countplot(x='#8 (major industry code) nominal', hue='#40 (target) nominal', data=df)
+    plt.xticks(rotation=30)
+    plt.figure()
+    sns.countplot(x='#34 (citizenship) nominal', hue='#40 (target) nominal', data=df)
+    plt.xticks(rotation=30)
+    plt.show()
+
+    #A few interesting insights come forward, such as:
+        #In terms of education, the ratio of people earning less than than 50k vs more than 50k
+            #significantly decreases with the advancement in degree. However, this does not hold for Masters degrees,
+            #and needs further investigation. For example, it might either be true as is, it might be an after-effect
+            #of the sampling procedure employed by the census, it might be due to the fact that most of the
+            #well-trained Masters students go on to do a PhD, etc.
+
+
 
     #Based on the information observed in the dataframe, missing values appear to be replaced with
     #'Not in universe' or 0 or '0' or '?'
