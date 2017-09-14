@@ -20,6 +20,10 @@ def preprocessData():
     #In regard to the continuous columns, there is not much score to create composite values
     #These would normally be used when trying to understand how features evolved since a particular point in time
     #e.g. since account creation, since time of use, etc. (if longstanding users are different to new users)
+    
+    #LATER EDIT: Further study of the dataset could result in the creation of the following composite columns
+        #Wage per hour compared to people with the same education levels - for example with $x above/below average
+            #similarly, for the same industry / occupation / class of worker / other nominal categories
 
     #We will however one-hot encode all the categorical variables for modelling purposes (except target)
         #(so as not to be limited to only models that can handle categorical features)
