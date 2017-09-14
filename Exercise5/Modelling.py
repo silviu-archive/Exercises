@@ -142,28 +142,39 @@ def trainModel():
 
     def testClassifier(clf):
 
-        '''
+
         #XGB tuning - concept, not in use
-        param_grid = [{'max_depth': range(2, 4, 1),
-                       'min_child_weight': range(3, 6, 1),
-                       'n_estimators': range(80, 110, 10),
+        param_grid = [{'max_depth': range(2, 6, 2),
+                       'min_child_weight': range(2, 6, 2),
+                       'n_estimators': range(100, 200, 75),
                        'learning_rate': [0.1],
-                       'gamma': [0],
-                       'subsample': [0.9, 1],
-                       'colsample_bytree': [0.7],
-                       'reg_alpha': [15, 50, 100, 150, 200],
-                       'reg_lambda': [15, 20, 25, 30, 40, 50]}]
+                       'gamma': [0, 1, 10],
+                       'subsample': [0.6, 0.8],
+                       'colsample_bytree': [0.6, 0.8],
+                       'reg_alpha': [1, 10],
+                       'reg_lambda': [1, 10]}]
         fit_params = {"early_stopping_rounds": 8,
-                      "eval_metric": "mae",
+                      "eval_metric": "map",
                       "eval_set": [[X_test, y_test]],
                       "verbose": False}
         grid = GridSearchCV(clf, param_grid, fit_params=fit_params,
-                            cv=3, verbose=1, n_jobs=-1)
+                            cv=3, verbose=1, n_jobs=-1, scoring='average_precision')
         fitted_classifier = grid.fit(X_train, y_train)
         print(grid.best_score_, grid.best_params_)
-        predictions = fitted_classifier.predict(X_train)
-        '''
 
+        predictions = fitted_classifier.predict(X_test)
+
+        score1 = metrics.accuracy_score(y_test.values, predictions)
+        score2 = metrics.roc_auc_score(y_test.values, predictions)
+        score3 = metrics.cohen_kappa_score(y_test.values, predictions)
+        score4 = metrics.classification_report(y_test.values, predictions)
+        print('Accuracy score, ROC AUC, Cohen Kappa')
+        print(score1, score2, score3)
+        print('Classification Report')
+        print(score4)
+
+
+        print('Normal Fit')
         fitted = clf.fit(X_train, y_train)
         scoresCV = cross_val_score(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
         trainPredictionsCV = cross_val_predict(clf, X_train, y_train, cv=3, verbose=0, n_jobs=-1)
@@ -194,7 +205,7 @@ def trainModel():
 
         return clf
 
-    print('LR')
+    '''print('LR')
     lr = LogisticRegression(C = 100)
     clf = testClassifier(lr)
     print('DT')
@@ -203,7 +214,7 @@ def trainModel():
     export_graphviz(clf, out_file = 'tree.dot')
     print('RF')
     rf = RandomForestClassifier()
-    clf = testClassifier(rf)
+    clf = testClassifier(rf)'''
     print('XGB')
     gb = xgboost.XGBClassifier()
     clf = testClassifier(gb)
