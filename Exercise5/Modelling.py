@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from sklearn.externals import joblib
 
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import VarianceThreshold, SelectPercentile, SelectFromModel
@@ -22,7 +23,7 @@ from DataProcessing import preprocessData
 def trainModel():
 
     #Read processed dataframe
-    df = preprocessData()
+    df = joblib.load('J:\Datasets\Exercises\Exercise5\EngineeredDataset.pkl')
 
     #Move test set indicator to the 2nd position of the dataframe
     cols = list(df)

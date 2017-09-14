@@ -121,14 +121,12 @@ def createStats():
     plt.xticks(rotation=30)
     plt.show()
 
-    #A few interesting insights come forward, such as:
+    #Iteresting insights can be drawn, such as:
         #In terms of education, the ratio of people earning less than than 50k vs more than 50k
             #significantly decreases with the advancement in degree. However, this does not hold for Masters degrees,
             #and needs further investigation. For example, it might either be true as is, it might be an after-effect
             #of the sampling procedure employed by the census, it might be due to the fact that most of the
             #well-trained Masters students go on to do a PhD, etc.
-
-
 
     #Based on the information observed in the dataframe, missing values appear to be replaced with
     #'Not in universe' or 0 or '0' or '?'
